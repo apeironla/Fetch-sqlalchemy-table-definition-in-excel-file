@@ -23,23 +23,68 @@ import re
 #     'default':'',
 #     'check':''
 # }
+
+def isUnique(line):
+    temp = re.search(r'\w*(unique=)(True|False)\w*',line)
+    if temp is None:
+         return "False"
+    else:
+        return temp.group(2)
+
+
+def autoIncrement(line):
+    temp = re.search(r'\w*(autoincrement=)(True|False)\w*',line)
+    if temp is None:
+         return "False"
+    else:
+        return temp.group(2)
+
+
+def isNullable(line):
+    temp = re.search(r'\w*(nullable=)(True|False)\w*',line)
+    if temp is None:
+         return "False"
+    else:
+        return temp.group(2)
+
+
+def isPrimaryKey(line):
+    temp = re.search(r'\w*(primary_key=)(True|False)\w*',line)
+    if temp is None:
+         return "False"
+    else:
+        return temp.group(2)
+
+
 def isTable(line):
     temp = re.search(r'(\w+table=\()((\'\w+\')|(\"\w+\"))',line)
-    if temp.find('\''):
-        temp = temp.group(2).split('\'')
-        return temp[1]
-    if temp.find('\"'):
-        temp = temp.group(2).split('\"')
-        return temp[1]
+    if temp is None:
+         return '' 
+    temp = temp.group(2)
+    temp = temp.replace('\"','')
+    temp = temp.replace('\'','')
+    # print(temp)   
+    return temp
+
      
 def isColumn(line):
-    n = re.search(r'(\w*Column\()((\'\w+\')|(\"\w+\"))',line)
-    if temp.find('\''):
-        temp = temp.group(2).split('\'')
+    temp = re.search(r'(\w*Column\()((\'\w+\')|(\"\w+\"))',line)
+    if temp is None:
+         return '' 
+    temp = temp.group(2)
+    temp = temp.replace('\"','')
+    temp = temp.replace('\'','')
+    return temp
+
+
+def datatype(line):
+    temp = re.search(r'(\w*Column\()',line)
+    if temp is None:
+         return '' 
+    else:
+        temp = line.split(',')
         return temp[1]
-    if temp.find('\"'):
-        temp = temp.group(2).split('\"')
-        return temp[1]
+
 
 def build_dict(in_dir):
     with open(in_dir,'r') as f:
@@ -48,17 +93,18 @@ def build_dict(in_dir):
             per_line=''
             for line in line:
                 per_line +=line
-            table_name = isTable(line)
+            # print(per_line)
+            table_name = isTable(per_line)
+            column_name=isColumn(per_line)
+            data_type = datatype(per_line)
+            is_unique = isUnique(per_line)
 
-            
-            
-
+        
 def change(args):
     in_dir=os.path.join(args.base_dir,args.change)
     out_dir=os.path.join(os.getcwd(),args.output)
     os.makedirs(out_dir,exist_ok=True)
     build_dict(in_dir)
-
     print(out_dir)
     
 
@@ -70,6 +116,7 @@ def main():
     args=parser.parse_args()
     if args.change:
         change(args)
+
 
 if __name__=="__main__":
     main()
